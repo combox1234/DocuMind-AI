@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: documind-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data
+      - ./app.log:/app/app.log
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - CHROMA_DB_DIR=chroma_db_docker
+    depends_on:
+      - ollama
+      - redis
+    networks:
+      - documind-network
+
+  worker:
+    build: .
+    container_name: documind-worker
+    restart: unless-stopped
+    command: celery -A worker.celery_app worker -l info
+    volumes:
+      - ./data:/app/data
+      - ./app.log:/app/app.log
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - CHROMA_DB_DIR=chroma_db_docker
+    depends_on:
+      - ollama
+      - redis
+    networks:
+      - documind-network
+
+  watcher:
+    build: .
+    container_name: documind-watcher
+    restart: unless-stopped
+    command: python watcher.py
+    volumes:
+      - ./data:/app/data
+      - ./app.log:/app/app.log
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - CHROMA_DB_DIR=chroma_db_docker
+    depends_on:
+      - ollama
+      - redis
+      - worker
+    networks:
+      - documind-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: documind-redis
+    restart: unless-stopped
+    networks:
+      - documind-network
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: documind-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    # Enable GPU support if available (Uncomment for GPU)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    networks:
+      - documind-network
+
+volumes:
+  ollama_data:
+
+
+networks:
+  documind-network:
+    driver: bridge

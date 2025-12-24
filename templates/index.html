@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <title>DocuMind AI</title>
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}?v={{ range(1000000000000, 9999999999999) | random }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <h1>DocuMind AI <span class="header-emoji">🔎</span></h1>
+    </header>
+
+    <main>
+        <div class="main-layout">
+            <aside id="chat-sidebar">
+                <button id="new-chat-btn">
+                    <span>+ New Chat</span>
+                </button>
+                <h3 class="sidebar-header">History</h3>
+                <div id="chat-history-list">
+                    <!-- Sessions loaded by JS -->
+                </div>
+            </aside>
+
+            <div id="chat-container">
+                <div class="welcome-message">
+                    <h2>Welcome</h2>
+                    <p>Ask questions about your documents and get instant answers.</p>
+                </div>
+            </div>
+
+            <div class="control-panel">
+                <div class="control-panel-header">
+                    <h3>Controls</h3>
+                </div>
+                <div class="control-panel-buttons">
+                    <button class="control-btn" id="tts-btn" title="Text-to-Speech">
+                        <span class="control-label">Read Aloud</span>
+                    </button>
+
+                    <button class="control-btn" id="export-btn-panel" title="Export conversation">
+                        <span class="control-label">Export</span>
+                    </button>
+                    <button class="control-btn" id="clear-chat-btn" title="Clear chat window">
+                        <span class="control-label">Clear Chat</span>
+                    </button>
+                    <button class="control-btn" id="settings-btn" title="Settings">
+                        <span class="control-label">Settings</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing...</p>
+        </div>
+
+        <div id="toast-container"></div>
+
+        <div class="input-container">
+            <input type="text" id="query-input" placeholder="Ask a question about your documents..." autocomplete="off">
+            <button id="send-btn">Send</button>
+        </div>
+    </main>
+
+    <!-- Chat History Modal -->
+    <div id="history-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Chat History</h2>
+            <div id="history-list"></div>
+            <div class="modal-actions">
+                <button id="clear-history-btn" class="btn-secondary">Clear History</button>
+                <button id="export-txt-btn" class="btn-primary">Export as Text</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="export-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Export Options</h2>
+            <p>Choose how to export your conversation:</p>
+            <div class="export-options">
+                <button id="export-txt-main" class="export-option">
+                    <span class="export-icon">📄</span>
+                    <span class="export-title">Export as Text</span>
+                    <span class="export-desc">Plain text format</span>
+                </button>
+                <button id="export-json-main" class="export-option">
+                    <span class="export-icon">📋</span>
+                    <span class="export-title">Export as JSON</span>
+                    <span class="export-desc">Structured data format</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Source Snippets Modal -->
+    <div id="snippets-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Source Snippets</h2>
+            <div id="snippets-list"></div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Settings</h2>
+
+            <div class="settings-section">
+                <h3>Voice Settings</h3>
+                <div class="voice-control">
+                    <label for="voice-volume">Volume:</label>
+                    <input type="range" id="voice-volume" min="0" max="100" value="100" step="10">
+                    <span id="volume-value">100%</span>
+                </div>
+                <div class="voice-control">
+                    <label for="voice-rate">Speed:</label>
+                    <input type="range" id="voice-rate" min="0.5" max="2" step="0.1" value="0.9">
+                    <span id="rate-value">0.9x</span>
+                </div>
+                <div class="voice-control">
+                    <label for="voice-pitch">Pitch:</label>
+                    <input type="range" id="voice-pitch" min="0.5" max="2" step="0.1" value="1.0">
+                    <span id="pitch-value">1.0x</span>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>Theme</h3>
+                <div class="theme-selector">
+                    <button class="theme-btn active" data-theme="dark">
+                        <span class="theme-name">Dark</span>
+                    </button>
+                    <button class="theme-btn" data-theme="moderate">
+                        <span class="theme-name">Moderate</span>
+                    </button>
+                    <button class="theme-btn" data-theme="light">
+                        <span class="theme-name">Light</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button id="reset-settings-btn" class="btn-secondary">Reset</button>
+                <button id="save-settings-btn" class="btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-confirm-modal" class="modal">
+        <div class="modal-content">
+            <h2>Delete Chat?</h2>
+            <p>Are you sure you want to delete this conversation? This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button id="cancel-delete-btn" class="btn-secondary">Cancel</button>
+                <button id="confirm-delete-btn" class="btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+
+</html>

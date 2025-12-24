@@ -1,0 +1,15 @@
+[
+  {
+    "sender": "user",
+    "text": "hi",
+    "timestamp": "2025-12-24T10:36:51.272451"
+  },
+  {
+    "sender": "assistant",
+    "text": "I don't have this information in the provided documents.",
+    "cited_files": [],
+    "confidence_score": 0,
+    "source_snippets": [],
+    "timestamp": "2025-12-24T10:36:51.272497"
+  }
+]
